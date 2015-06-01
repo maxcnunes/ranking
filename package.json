@@ -1,0 +1,33 @@
+{
+  "name": "ranking",
+  "version": "0.0.0",
+  "description": "ranking",
+  "main": "lib/index.js",
+  "author": "Max Claus Nunes <maxcnunes@gmail.com>",
+  "scripts": {
+    "compile": "babel --stage 0 -d lib/ src/",
+    "prepublish": "npm run compile",
+    "test": "eslint src/ spec/ && mocha --compilers js:./compiler --timeout 30000 --reporter spec ./spec/**/*.spec.js",
+    "watch-test": "eslint src/ spec/ && mocha --compilers js:./compiler --timeout 30000 --watch --reporter spec ./spec/**/*.spec.js"
+  },
+  "keywords": [
+    "ranking",
+    "rank",
+    "btree"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maxcnunes/ranking"
+  },
+  "devDependencies": {
+    "babel": "^5.4.7",
+    "babel-eslint": "^3.1.9",
+    "chai": "^2.3.0",
+    "eslint": "^0.22.1",
+    "mocha": "^2.2.5",
+    "sinon": "^1.14.1"
+  },
+  "dependencies": {
+    "debug": "^2.2.0"
+  }
+}
