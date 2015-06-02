@@ -25,32 +25,31 @@ export function findByScore({ branchFactor, node, nodeRange, query, result }) {
   const { amountLeafsPerBranch, amountBranches } = resolveBranchInfo({ nodeRange, branchFactor });
 
   for (let i = amountBranches - 1;/*base 0*/ i >= 0; i--) {
-  // for (let i = amountBranches - 1;/*base 0*/ i >= indexScore; i--) {
     debug('index loop [%o]', i);
 
-    let xnode = node.children[i];
+    let currentNode = node.children[i];
 
-    if (result.list.length < query.$limit && xnode.amount > 0) {
-      if (!xnode.playerIds) {
-        const xinitScore = resolveInitScore({ nodeRange$gte: nodeRange.$gte, indexScore: i, amountLeafsPerBranch });
-        const xmaxScore = resolveMaxScore({ nodeRange$gte: xinitScore, indexScore: i, amountLeafsPerBranch, amountBranches });
+    if (result.list.length < query.$limit && currentNode.amount > 0) {
+      if (!currentNode.playerIds) {
+        const nodeRange$gte = resolveInitScore({ nodeRange$gte: nodeRange.$gte, indexScore: i, amountLeafsPerBranch });
+        const nodeRange$lte = resolveMaxScore({ nodeRange$gte, indexScore: i, amountLeafsPerBranch, amountBranches });
 
         findByScore({
           branchFactor,
-          node: xnode,
+          node: currentNode,
           nodeRange: {
-            $gte: xinitScore,
-            $lte: xmaxScore
+            $gte: nodeRange$gte,
+            $lte: nodeRange$lte
           },
           query,
           result
         });
       } else {
-        debug('node.children[%o].amount [%o]', i, xnode.amount);
-        for (let playerIdx = 0; playerIdx < xnode.amount; playerIdx++) {
+        debug('node.children[%o].amount [%o]', i, currentNode.amount);
+        for (let playerIndex = 0; playerIndex < currentNode.amount; playerIndex++) {
           if (result.list.length < query.$limit) {
             result.position += 1;
-            result.list.push({ position: result.position, score: xnode.score, playerId: xnode.playerIds[playerIdx] });
+            result.list.push({ position: result.position, score: currentNode.score, playerId: currentNode.playerIds[playerIndex] });
           }
         }
       }
@@ -76,51 +75,51 @@ export function findByPosition({ branchFactor, node, nodeRange, query, result })
   for (let i = amountBranches - 1;/*base 0*/ i >= 0; i--) {
     debug('index loop [%o]', i);
 
-    let xnode = node.children[i];
+    let currentNode = node.children[i];
 
-    if (result.list.length < query.$limit && xnode.amount > 0) {
-      if (!xnode.playerIds) {
-        const xinitScore = resolveInitScore({ nodeRange$gte: nodeRange.$gte, indexScore: i, amountLeafsPerBranch });
-        const xmaxScore = resolveMaxScore({ nodeRange$gte: xinitScore, indexScore: i, amountLeafsPerBranch, amountBranches });
+    if (result.list.length > query.$limit) { return; }
+    if (currentNode.amount <= 0) { continue; }
 
-        debug('xnode.amount [%o]', xnode.amount);
-        debug('result.list.length [%o]', result.list.length);
-        debug('result.position [%o]', result.position);
-        debug('xnode.amount + result.position [%o]', xnode.amount + result.position);
-        debug('enter if', (xnode.amount + result.position) > query.position.$lte &&
-           (xnode.amount + result.position) < query.position.$gte &&
-           (xnode.amount + result.list.length) < query.$limit);
+    if (!currentNode.playerIds) {
+      const nodeRange$gte = resolveInitScore({ nodeRange$gte: nodeRange.$gte, indexScore: i, amountLeafsPerBranch });
+      const nodeRange$lte = resolveMaxScore({ nodeRange$gte, indexScore: i, amountLeafsPerBranch, amountBranches });
 
-        if ((xnode.amount + result.position) > query.position.$lte &&
-           (xnode.amount + result.position) < query.position.$gte &&
-           (xnode.amount + result.list.length) < query.$limit) {
-          result.position += xnode.amount;
-          continue;
-        }
+      debug('currentNode.amount [%o]', currentNode.amount);
+      debug('result.list.length [%o]', result.list.length);
+      debug('result.position [%o]', result.position);
+      debug('currentNode.amount + result.position [%o]', currentNode.amount + result.position);
 
-        findByPosition({
-          branchFactor,
-          node: xnode,
-          nodeRange: {
-            $gte: xinitScore,
-            $lte: xmaxScore
-          },
-          query,
-          result
-        });
-      } else {
-        debug('node.children[%o].amount [%o]', i, xnode.amount);
-        for (let playerIdx = 0; playerIdx < xnode.amount; playerIdx++) {
-          result.position += 1;
-          debug('position player [%o]', result.position);
-          if (result.list.length < query.$limit && result.position >= query.position.$gte && result.position <= query.position.$lte) {
-            result.list.push({ position: result.position, score: xnode.score, playerId: xnode.playerIds[playerIdx] });
-          }
+      const passOverNode = (currentNode.amount + result.position) > query.position.$lte &&
+         (currentNode.amount + result.position) < query.position.$gte &&
+         (currentNode.amount + result.list.length) < query.$limit;
+      debug('passOverNode', passOverNode);
+
+      if (passOverNode) {
+        result.position += currentNode.amount;
+        continue;
+      }
+
+      findByPosition({
+        branchFactor,
+        node: currentNode,
+        nodeRange: {
+          $gte: nodeRange$gte,
+          $lte: nodeRange$lte
+        },
+        query,
+        result
+      });
+    } else {
+      debug('node.children[%o].amount [%o]', i, currentNode.amount);
+      for (let playerIndex = 0; playerIndex < currentNode.amount; playerIndex++) {
+        result.position += 1;
+        debug('position player [%o]', result.position);
+        if (result.list.length < query.$limit && result.position >= query.position.$gte && result.position <= query.position.$lte) {
+          result.list.push({ position: result.position, score: currentNode.score, playerId: currentNode.playerIds[playerIndex] });
         }
       }
     }
   }
-  // debug('node.children result [%o]', result);
 }
 
 export function setScore({ branchFactor, node, score, playerId, nodeRange }) {
