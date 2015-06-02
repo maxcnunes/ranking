@@ -35,9 +35,9 @@ export default class Ranking {
       findByPosition({
         branchFactor: this.branchFactor,
         node: this.tree,
-        nodeRange: {
-          $gte: 0,
-          $lte: this.maxScore - 1/*base 0*/
+        nodeScoreRange: {
+          beginAt: 0,
+          endAt: this.maxScore - 1/*base 0*/
         },
         query: query,
         result
@@ -52,9 +52,9 @@ export default class Ranking {
       findByScore({
         branchFactor: this.branchFactor,
         node: this.tree,
-        nodeRange: {
-          $gte: 0,
-          $lte: this.maxScore/*base 0*/
+        nodeScoreRange: {
+          beginAt: 0,
+          endAt: this.maxScore/*base 0*/
         },
         query: query,
         result
@@ -80,9 +80,9 @@ export default class Ranking {
       score,
       playerId,
       node: this.tree,
-      nodeRange: {
-        $gte: 0,
-        $lte: this.maxScore - 1/*base 0*/
+      nodeScoreRange: {
+        beginAt: 0,
+        endAt: this.maxScore - 1/*base 0*/
       }
     });
   }

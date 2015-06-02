@@ -2,27 +2,27 @@ const debug = require('./debug')('ranking');
 
 
 
-export function findByScore({ branchFactor, node, nodeRange, query, result }) {
+export function findByScore({ branchFactor, node, nodeScoreRange, query, result }) {
   debug('');
 
-  // node.range = [nodeRange.$gte, nodeRange.$lte]; //debug
+  // node.range = [nodeScoreRange.beginAt, nodeScoreRange.endAt]; //debug
 
   debug('query.$limit [%o]', query.$limit);
-  debug('nodeRange.$gte [%o]', nodeRange.$gte);
-  debug('nodeRange.$lte [%o]', nodeRange.$lte);
+  debug('nodeScoreRange.beginAt [%o]', nodeScoreRange.beginAt);
+  debug('nodeScoreRange.endAt [%o]', nodeScoreRange.endAt);
   debug('query.score.$gte [%o]', query.score.$gte);
   debug('query.score.$lte [%o]', query.score.$lte);
 
-  if (nodeRange.$gte > query.score.$lte) {
+  if (nodeScoreRange.beginAt > query.score.$lte) {
     result.position += node.amount;
     return;
   }
 
-  if (nodeRange.$lte < query.score.$gte) {
+  if (nodeScoreRange.endAt < query.score.$gte) {
     return;
   }
 
-  const { amountLeafsPerBranch, amountBranches } = resolveBranchInfo({ nodeRange, branchFactor });
+  const { amountLeafsPerBranch, amountBranches } = resolveBranchInfo({ nodeScoreRange, branchFactor });
 
   for (let i = amountBranches - 1;/*base 0*/ i >= 0; i--) {
     debug('index loop [%o]', i);
@@ -31,15 +31,15 @@ export function findByScore({ branchFactor, node, nodeRange, query, result }) {
 
     if (result.list.length < query.$limit && currentNode.amount > 0) {
       if (!currentNode.playerIds) {
-        const nodeRange$gte = resolveInitScore({ nodeRange$gte: nodeRange.$gte, indexScore: i, amountLeafsPerBranch });
-        const nodeRange$lte = resolveMaxScore({ nodeRange$gte, indexScore: i, amountLeafsPerBranch, amountBranches });
+        const nodeScoreRangeBeginAt = resolveInitScore({ nodeScoreRangeBeginAt: nodeScoreRange.beginAt, indexScore: i, amountLeafsPerBranch });
+        const nodeScoreRange$lte = resolveMaxScore({ nodeScoreRangeBeginAt, indexScore: i, amountLeafsPerBranch, amountBranches });
 
         findByScore({
           branchFactor,
           node: currentNode,
-          nodeRange: {
-            $gte: nodeRange$gte,
-            $lte: nodeRange$lte
+          nodeScoreRange: {
+            beginAt: nodeScoreRangeBeginAt,
+            endAt: nodeScoreRange$lte
           },
           query,
           result
@@ -58,19 +58,19 @@ export function findByScore({ branchFactor, node, nodeRange, query, result }) {
   debug('node.children result [%o]', result);
 }
 
-export function findByPosition({ branchFactor, node, nodeRange, query, result }) {
+export function findByPosition({ branchFactor, node, nodeScoreRange, query, result }) {
   debug('');
 
-  // node.range = [nodeRange.$gte, nodeRange.$lte]; //debug
+  // node.range = [nodeScoreRange.beginAt, nodeScoreRange.endAt]; //debug
 
   debug('query.$limit [%o]', query.$limit);
-  debug('nodeRange.$gte [%o]', nodeRange.$gte);
-  debug('nodeRange.$lte [%o]', nodeRange.$lte);
+  debug('nodeScoreRange.beginAt [%o]', nodeScoreRange.beginAt);
+  debug('nodeScoreRange.endAt [%o]', nodeScoreRange.endAt);
   debug('query.position.$gte [%o]', query.position.$gte);
   debug('query.position.$lte [%o]', query.position.$lte);
   debug('node.amount [%o]', node.amount);
 
-  const { amountLeafsPerBranch, amountBranches } = resolveBranchInfo({ nodeRange, branchFactor });
+  const { amountLeafsPerBranch, amountBranches } = resolveBranchInfo({ nodeScoreRange, branchFactor });
 
   for (let i = amountBranches - 1;/*base 0*/ i >= 0; i--) {
     debug('index loop [%o]', i);
@@ -81,8 +81,8 @@ export function findByPosition({ branchFactor, node, nodeRange, query, result })
     if (currentNode.amount <= 0) { continue; }
 
     if (!currentNode.playerIds) {
-      const nodeRange$gte = resolveInitScore({ nodeRange$gte: nodeRange.$gte, indexScore: i, amountLeafsPerBranch });
-      const nodeRange$lte = resolveMaxScore({ nodeRange$gte, indexScore: i, amountLeafsPerBranch, amountBranches });
+      const nodeScoreRangeBeginAt = resolveInitScore({ nodeScoreRangeBeginAt: nodeScoreRange.beginAt, indexScore: i, amountLeafsPerBranch });
+      const nodeScoreRange$lte = resolveMaxScore({ nodeScoreRangeBeginAt, indexScore: i, amountLeafsPerBranch, amountBranches });
 
       debug('currentNode.amount [%o]', currentNode.amount);
       debug('result.list.length [%o]', result.list.length);
@@ -102,9 +102,9 @@ export function findByPosition({ branchFactor, node, nodeRange, query, result })
       findByPosition({
         branchFactor,
         node: currentNode,
-        nodeRange: {
-          $gte: nodeRange$gte,
-          $lte: nodeRange$lte
+        nodeScoreRange: {
+          beginAt: nodeScoreRangeBeginAt,
+          endAt: nodeScoreRange$lte
         },
         query,
         result
@@ -122,22 +122,22 @@ export function findByPosition({ branchFactor, node, nodeRange, query, result })
   }
 }
 
-export function setScore({ branchFactor, node, score, playerId, nodeRange }) {
+export function setScore({ branchFactor, node, score, playerId, nodeScoreRange }) {
   debug('');
   debug('score [%o=%o]', playerId, score);
 
   // increases amount on current node before continue going deeper
   node.amount += 1;
-  // node.range = [nodeRange.$gte, nodeRange.$lte]; //debug
+  // node.range = [nodeScoreRange.beginAt, nodeScoreRange.endAt]; //debug
 
-  debug('nodeRange.$gte [%o]', nodeRange.$gte);
-  debug('nodeRange.$lte [%o]', nodeRange.$lte);
+  debug('nodeScoreRange.beginAt [%o]', nodeScoreRange.beginAt);
+  debug('nodeScoreRange.endAt [%o]', nodeScoreRange.endAt);
 
-  const { amountLeafsPerBranch, amountBranches } = resolveBranchInfo({ nodeRange, branchFactor });
-  const indexScore = resolveIndexScore({ score, nodeRange$gte: nodeRange.$gte, amountLeafsPerBranch, amountBranches });
+  const { amountLeafsPerBranch, amountBranches } = resolveBranchInfo({ nodeScoreRange, branchFactor });
+  const indexScore = resolveIndexScore({ score, nodeScoreRangeBeginAt: nodeScoreRange.beginAt, amountLeafsPerBranch, amountBranches });
 
-  nodeRange.$gte = resolveInitScore({ nodeRange$gte: nodeRange.$gte, indexScore, amountLeafsPerBranch });
-  nodeRange.$lte = resolveMaxScore({ nodeRange$gte: nodeRange.$gte, indexScore, amountLeafsPerBranch, amountBranches });
+  nodeScoreRange.beginAt = resolveInitScore({ nodeScoreRangeBeginAt: nodeScoreRange.beginAt, indexScore, amountLeafsPerBranch });
+  nodeScoreRange.endAt = resolveMaxScore({ nodeScoreRangeBeginAt: nodeScoreRange.beginAt, indexScore, amountLeafsPerBranch, amountBranches });
 
   // creates children list
   if (!node.children) {
@@ -150,11 +150,11 @@ export function setScore({ branchFactor, node, score, playerId, nodeRange }) {
   node = node.children[indexScore];
 
   // in case it is a non-leaf then continues going deeper
-  if (nodeRange.$gte !== nodeRange.$lte) {
+  if (nodeScoreRange.beginAt !== nodeScoreRange.endAt) {
     return setScore({
       score,
       playerId,
-      nodeRange,
+      nodeScoreRange,
       node,
       branchFactor
     });
@@ -174,8 +174,8 @@ export function setScore({ branchFactor, node, score, playerId, nodeRange }) {
 }
 
 
-function resolveBranchInfo ({ nodeRange, branchFactor }) {
-  const amountLeafsCurrentBranch = nodeRange.$lte - nodeRange.$gte + 1;/*base 0*/
+function resolveBranchInfo ({ nodeScoreRange, branchFactor }) {
+  const amountLeafsCurrentBranch = nodeScoreRange.endAt - nodeScoreRange.beginAt + 1;/*base 0*/
   let amountBranches = branchFactor;
 
   let amountLeafsPerBranch = (amountLeafsCurrentBranch) / branchFactor;
@@ -191,27 +191,27 @@ function resolveBranchInfo ({ nodeRange, branchFactor }) {
 }
 
 
-function resolveIndexScore ({ score, nodeRange$gte, amountLeafsPerBranch, amountBranches }) {
-  const indexScore = Math.floor((score - nodeRange$gte) / Math.floor(amountLeafsPerBranch) % amountBranches);
+function resolveIndexScore ({ score, nodeScoreRangeBeginAt, amountLeafsPerBranch, amountBranches }) {
+  const indexScore = Math.floor((score - nodeScoreRangeBeginAt) / Math.floor(amountLeafsPerBranch) % amountBranches);
   debug('indexScore [%o]', indexScore);
   return indexScore;
 }
 
 
-function resolveInitScore ({ nodeRange$gte, indexScore, amountLeafsPerBranch }) {
-  nodeRange$gte = Math.floor(indexScore * amountLeafsPerBranch) + nodeRange$gte;
-  debug('nodeRange$gte [%o]', nodeRange$gte);
-  return nodeRange$gte;
+function resolveInitScore ({ nodeScoreRangeBeginAt, indexScore, amountLeafsPerBranch }) {
+  nodeScoreRangeBeginAt = Math.floor(indexScore * amountLeafsPerBranch) + nodeScoreRangeBeginAt;
+  debug('nodeScoreRangeBeginAt [%o]', nodeScoreRangeBeginAt);
+  return nodeScoreRangeBeginAt;
 }
 
 
-function resolveMaxScore ({ nodeRange$gte, indexScore, amountLeafsPerBranch, amountBranches }) {
-  let nodeRange$lte = nodeRange$gte + amountLeafsPerBranch - 1;/*base 0*/
+function resolveMaxScore ({ nodeScoreRangeBeginAt, indexScore, amountLeafsPerBranch, amountBranches }) {
+  let nodeScoreRange$lte = nodeScoreRangeBeginAt + amountLeafsPerBranch - 1;/*base 0*/
   if (indexScore === (amountBranches - 1/*base 0*/)) {
-    nodeRange$lte = Math.ceil(nodeRange$lte);
+    nodeScoreRange$lte = Math.ceil(nodeScoreRange$lte);
   } else {
-    nodeRange$lte = Math.floor(nodeRange$lte);
+    nodeScoreRange$lte = Math.floor(nodeScoreRange$lte);
   }
-  debug('nodeRange$lte [%o]', nodeRange$lte);
-  return nodeRange$lte;
+  debug('nodeScoreRange$lte [%o]', nodeScoreRange$lte);
+  return nodeScoreRange$lte;
 }
