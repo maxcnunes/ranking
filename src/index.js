@@ -34,9 +34,11 @@ export default class Ranking {
       prepareQueryByRange(query, 'position');
       findByPosition({
         branchFactor: this.branchFactor,
-        initScore: 0,
-        maxScore: this.maxScore - 1/*base 0*/,
         node: this.tree,
+        nodeRange: {
+          $gte: 0,
+          $lte: this.maxScore - 1/*base 0*/
+        },
         query: query,
         result
       });
@@ -49,9 +51,11 @@ export default class Ranking {
 
       findByScore({
         branchFactor: this.branchFactor,
-        initScore: 0,
-        maxScore: this.maxScore/*base 0*/,
         node: this.tree,
+        nodeRange: {
+          $gte: 0,
+          $lte: this.maxScore/*base 0*/
+        },
         query: query,
         result
       });
@@ -75,9 +79,11 @@ export default class Ranking {
       branchFactor: this.branchFactor,
       score,
       playerId,
-      initScore: 0,
-      maxScore: this.maxScore - 1/*base 0*/,
-      node: this.tree
+      node: this.tree,
+      nodeRange: {
+        $gte: 0,
+        $lte: this.maxScore - 1/*base 0*/
+      }
     });
   }
 }
