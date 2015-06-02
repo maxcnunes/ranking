@@ -2,23 +2,23 @@ const debug = require('./debug')('ranking');
 
 
 
-export function findByScore({ node, limit, initScore, maxScore, result, qMinScore, qMaxScore, branchFactor }) {
+export function findByScore({ node, initScore, maxScore, result, query, branchFactor }) {
   debug('');
 
   // node.range = [initScore, maxScore]; //debug
 
-  debug('limit [%o]', limit);
+  debug('query.$limit [%o]', query.$limit);
   debug('initScore [%o]', initScore);
   debug('maxScore [%o]', maxScore);
-  debug('qMinScore [%o]', qMinScore);
-  debug('qMaxScore [%o]', qMaxScore);
+  debug('query.score.$gte [%o]', query.score.$gte);
+  debug('query.score.$lte [%o]', query.score.$lte);
 
-  if (initScore > qMaxScore) {
+  if (initScore > query.score.$lte) {
     result.position += node.amount;
     return;
   }
 
-  if (maxScore < qMinScore) {
+  if (maxScore < query.score.$gte) {
     return;
   }
 
@@ -30,25 +30,23 @@ export function findByScore({ node, limit, initScore, maxScore, result, qMinScor
 
     let xnode = node.children[i];
 
-    if (result.list.length < limit && xnode.amount > 0) {
+    if (result.list.length < query.$limit && xnode.amount > 0) {
       if (!xnode.playerIds) {
         const xinitScore = resolveInitScore({ initScore, indexScore: i, amountLeafsPerBranch });
         const xmaxScore = resolveMaxScore({ initScore: xinitScore, indexScore: i, amountLeafsPerBranch, amountBranches });
 
         findByScore({
-          limit: limit,
           initScore: xinitScore,
           maxScore: xmaxScore,
           node: xnode,
-          qMinScore,
-          qMaxScore,
+          query,
           result,
           branchFactor
         });
       } else {
         debug('node.children[%o].amount [%o]', i, xnode.amount);
         for (let playerIdx = 0; playerIdx < xnode.amount; playerIdx++) {
-          if (result.list.length < limit) {
+          if (result.list.length < query.$limit) {
             result.position += 1;
             result.list.push({ position: result.position, score: xnode.score, playerId: xnode.playerIds[playerIdx] });
           }
@@ -59,16 +57,16 @@ export function findByScore({ node, limit, initScore, maxScore, result, qMinScor
   debug('node.children result [%o]', result);
 }
 
-export function findByPosition({ node, limit, initScore, maxScore, result, qMinPosition, qMaxPosition, branchFactor }) {
+export function findByPosition({ node, initScore, maxScore, result, query, branchFactor }) {
   debug('');
 
   // node.range = [initScore, maxScore]; //debug
 
-  debug('limit [%o]', limit);
+  debug('query.$limit [%o]', query.$limit);
   debug('initScore [%o]', initScore);
   debug('maxScore [%o]', maxScore);
-  debug('qMinPosition [%o]', qMinPosition);
-  debug('qMaxPosition [%o]', qMaxPosition);
+  debug('query.position.$gte [%o]', query.position.$gte);
+  debug('query.position.$lte [%o]', query.position.$lte);
   debug('node.amount [%o]', node.amount);
 
   const { amountLeafsPerBranch, amountBranches } = resolveBranchInfo({ maxScore, initScore, branchFactor });
@@ -78,7 +76,7 @@ export function findByPosition({ node, limit, initScore, maxScore, result, qMinP
 
     let xnode = node.children[i];
 
-    if (result.list.length < limit && xnode.amount > 0) {
+    if (result.list.length < query.$limit && xnode.amount > 0) {
       if (!xnode.playerIds) {
         const xinitScore = resolveInitScore({ initScore, indexScore: i, amountLeafsPerBranch });
         const xmaxScore = resolveMaxScore({ initScore: xinitScore, indexScore: i, amountLeafsPerBranch, amountBranches });
@@ -87,24 +85,22 @@ export function findByPosition({ node, limit, initScore, maxScore, result, qMinP
         debug('result.list.length [%o]', result.list.length);
         debug('result.position [%o]', result.position);
         debug('xnode.amount + result.position [%o]', xnode.amount + result.position);
-        debug('enter if', (xnode.amount + result.position) > qMaxPosition &&
-           (xnode.amount + result.position) < qMinPosition &&
-           (xnode.amount + result.list.length) < limit);
+        debug('enter if', (xnode.amount + result.position) > query.position.$lte &&
+           (xnode.amount + result.position) < query.position.$gte &&
+           (xnode.amount + result.list.length) < query.$limit);
 
-        if ((xnode.amount + result.position) > qMaxPosition &&
-           (xnode.amount + result.position) < qMinPosition &&
-           (xnode.amount + result.list.length) < limit) {
+        if ((xnode.amount + result.position) > query.position.$lte &&
+           (xnode.amount + result.position) < query.position.$gte &&
+           (xnode.amount + result.list.length) < query.$limit) {
           result.position += xnode.amount;
           continue;
         }
 
         findByPosition({
-          limit: limit,
           initScore: xinitScore,
           maxScore: xmaxScore,
           node: xnode,
-          qMinPosition,
-          qMaxPosition,
+          query,
           result,
           branchFactor
         });
@@ -113,7 +109,7 @@ export function findByPosition({ node, limit, initScore, maxScore, result, qMinP
         for (let playerIdx = 0; playerIdx < xnode.amount; playerIdx++) {
           result.position += 1;
           debug('position player [%o]', result.position);
-          if (result.list.length < limit && result.position >= qMinPosition && result.position <= qMaxPosition) {
+          if (result.list.length < query.$limit && result.position >= query.position.$gte && result.position <= query.position.$lte) {
             result.list.push({ position: result.position, score: xnode.score, playerId: xnode.playerIds[playerIdx] });
           }
         }

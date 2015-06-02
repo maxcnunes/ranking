@@ -25,19 +25,39 @@ export default class Ranking {
     // rank is empty
     if (!this.tree.children) { return []; }
 
-    let result = [];
+    const result = { position: 0, list: [] };
 
     if (!query) { query = {}; }
     query.$limit = query.$limit || 10;
 
     if (query.position) {
-      result = this._findByPosition(query);
+      prepareQueryByRange(query, 'position');
+      findByPosition({
+        branchFactor: this.branchFactor,
+        initScore: 0,
+        maxScore: this.maxScore - 1/*base 0*/,
+        node: this.tree,
+        query: query,
+        result
+      });
     }
     else if (query.score) {
-      result = this._findByScore(query);
+      prepareQueryByRange(query, 'score');
+
+      query.score.$gte = query.score.$gte - 1;/*base 0*/
+      query.score.$lte = (query.score.$lte || this.maxScore) - 1;/*base 0*/
+
+      findByScore({
+        branchFactor: this.branchFactor,
+        initScore: 0,
+        maxScore: this.maxScore/*base 0*/,
+        node: this.tree,
+        query: query,
+        result
+      });
     }
 
-    return result;
+    return result.list;
   }
 
   findOne(query) {
@@ -60,60 +80,15 @@ export default class Ranking {
       node: this.tree
     });
   }
-
-  _findByPosition(query) {
-    debug('_findByPosition');
-
-    prepareQueryByType(query, 'position');
-
-    const result = { position: 0, list: [] };
-
-    findByPosition({
-      branchFactor: this.branchFactor,
-      limit: query.$limit || 10,
-      initScore: 0,
-      maxScore: this.maxScore - 1/*base 0*/,
-      node: this.tree,
-      qMinPosition: query.position.$gte,
-      qMaxPosition: query.position.$lte,
-      result
-    });
-
-    return result.list;
-  }
-
-  _findByScore(query) {
-    debug('_findByScore');
-
-    prepareQueryByType(query, 'score');
-
-    const result = { position: 0, list: [] };
-
-    findByScore({
-      branchFactor: this.branchFactor,
-      limit: query.$limit || 10,
-      initScore: 0,
-      maxScore: this.maxScore/*base 0*/,
-      node: this.tree,
-      qMinScore: (query.score.$gte - 1/*base 0*/) || 0,
-      qMaxScore: (query.score.$lte || this.maxScore) - 1/*base 0*/,
-      result
-    });
-
-    return result.list;
-  }
 }
 
-
-
-
-const REGEXP_NUMBER = /^-?\d+$/;
 
 /**
  * prepares the query before searching in the ranking
  * it is possible to filter by a specific value or a range ($gte and $lte)
  */
-function prepareQueryByType (query, field) {
+const REGEXP_NUMBER = /^-?\d+$/;
+function prepareQueryByRange (query, field) {
   const value = REGEXP_NUMBER.test(query[field]) && query[field];
   query[field] = {
     $gte: value || query[field].$gte || 1,
