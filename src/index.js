@@ -17,77 +17,70 @@ export default class Ranking {
     this.tree = { amount: 0, children: null };
   }
 
-  findRankByScore(score) {
-    debug('findRankByScore');
-
-    // rank is empty
-    if (!this.tree.children) { return 0; }
-
-    return this._findRankByScore({
-      score,
-      initScore: 0,
-      maxScore: this.maxScore - 1/*base 0*/,
-      node: this.tree
-    }) + 1;/*base 0*/
-  }
-
-  findRank(position) {
-    debug('findRank');
+  find(query) {
+    debug('find');
 
     // rank is empty
     if (!this.tree.children) { return []; }
 
-    const result = { position: 0, list: [] };
+    let result = [];
 
-    this._findRankBetween({
-      limit: 1,
-      initScore: 0,
-      maxScore: this.maxScore - 1/*base 0*/,
-      node: this.tree,
-      qMinPosition: position,
-      qMaxPosition: position,
-      result
-    });
+    if (!query) { query = {}; }
+    query.$limit = query.$limit || 10;
 
-    return result.list[0];
+    if (query.position) {
+      result = this._findByPosition(query);
+    }
+    else if (query.score) {
+      result = this._findByScore(query);
+    }
+
+    return result;
   }
 
-  findRankBetween(minPosition, maxPosition, limit) {
-    debug('findRankBetween');
+  findOne(query) {
+    debug('findOne');
 
-    // rank is empty
-    if (!this.tree.children) { return []; }
+    if (!query) { query = {}; }
+    query.$limit = 1;
+
+    return this.find(query)[0];
+  }
+
+  _findByPosition(query) {
+    debug('_findByPosition');
+
+    prepareQueryByType(query, 'position');
 
     const result = { position: 0, list: [] };
 
     this._findRankBetween({
-      limit: limit || 10,
+      limit: query.$limit || 10,
       initScore: 0,
       maxScore: this.maxScore - 1/*base 0*/,
       node: this.tree,
-      qMinPosition: minPosition,
-      qMaxPosition: maxPosition,
+      qMinPosition: query.position.$gte,
+      qMaxPosition: query.position.$lte,
       result
     });
 
     return result.list;
   }
 
-  findRankByScoreBetween(minScore, maxScore, limit) {
-    debug('findRankByScoreBetween');
+  _findByScore(query) {
+    debug('_findByScore');
 
-    // rank is empty
-    if (!this.tree.children) { return []; }
+    prepareQueryByType(query, 'score');
 
     const result = { position: 0, list: [] };
 
-    this._findRankByScoreBetween({
-      limit: limit || 10,
+    this._findByScoreBetween({
+      limit: query.$limit || 10,
       initScore: 0,
       maxScore: this.maxScore/*base 0*/,
       node: this.tree,
-      qMinScore: (minScore - 1/*base 0*/) || 0,
-      qMaxScore: (maxScore || this.maxScore) - 1/*base 0*/,
+      qMinScore: (query.score.$gte - 1/*base 0*/) || 0,
+      qMaxScore: (query.score.$lte || this.maxScore) - 1/*base 0*/,
       result
     });
 
@@ -105,7 +98,7 @@ export default class Ranking {
     });
   }
 
-  _findRankByScoreBetween({ node, limit, initScore, maxScore, result, qMinScore, qMaxScore }) {
+  _findByScoreBetween({ node, limit, initScore, maxScore, result, qMinScore, qMaxScore }) {
     debug('');
 
     // node.range = [initScore, maxScore]; //debug
@@ -138,7 +131,7 @@ export default class Ranking {
           const xinitScore = resolveInitScore({ initScore, indexScore: i, amountLeafsPerBranch });
           const xmaxScore = resolveMaxScore({ initScore: xinitScore, indexScore: i, amountLeafsPerBranch, amountBranches });
 
-          this._findRankByScoreBetween({
+          this._findByScoreBetween({
             limit: limit,
             initScore: xinitScore,
             maxScore: xmaxScore,
@@ -159,46 +152,6 @@ export default class Ranking {
       }
     }
     debug('node.children result [%o]', result);
-  }
-
-  _findRankByScore({ node, score, initScore, maxScore }) {
-    debug('');
-    debug('score [%o]', score);
-
-    // node.range = [initScore, maxScore]; //debug
-
-    debug('initScore [%o]', initScore);
-    debug('maxScore [%o]', maxScore);
-
-    const { amountLeafsPerBranch, amountBranches } = resolveBranchInfo({ maxScore, initScore, branchFactor: this.branchFactor });
-    const indexScore = resolveIndexScore({ score, initScore, amountLeafsPerBranch, amountBranches });
-
-    initScore = resolveInitScore({ initScore, indexScore, amountLeafsPerBranch });
-    maxScore = resolveMaxScore({ initScore, indexScore, amountLeafsPerBranch, amountBranches });
-
-    let amount = 0;
-    for (let i = indexScore + 1;/*ignores itself*/ i < amountBranches; i++) {
-      debug('node.children[%o].amount [%o]', i, node.children[i].amount);
-      amount += node.children[i].amount;
-    }
-    debug('node.children[all right].amount [%o]', amount);
-
-    node = node.children[indexScore];
-
-    // in case it is a non-leaf then continues going deeper
-    if (initScore !== maxScore) {
-      return amount + this._findRankByScore({
-        score,
-        initScore,
-        maxScore,
-        node
-      });
-    }
-
-    /*
-      LEAF
-     */
-    return amount;
   }
 
   _findRankBetween({ node, limit, initScore, maxScore, result, qMinPosition, qMaxPosition }) {
@@ -357,4 +310,19 @@ function resolveMaxScore ({ initScore, indexScore, amountLeafsPerBranch, amountB
   }
   debug('maxScore [%o]', maxScore);
   return maxScore;
+}
+
+
+const REGEXP_NUMBER = /^-?\d+$/;
+
+/**
+ * prepares the query before searching in the ranking
+ * it is possible to filter by a specific value or a range ($gte and $lte)
+ */
+function prepareQueryByType (query, field) {
+  const value = REGEXP_NUMBER.test(query[field]) && query[field];
+  query[field] = {
+    $gte: value || query[field].$gte || 1,
+    $lte: value || query[field].$lte || 100
+  };
 }

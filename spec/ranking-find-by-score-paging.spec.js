@@ -9,7 +9,7 @@ describe('ranking-find-by-score-paging', function () {
 
   describe('given an empty rank', function () {
     it('should return empty', function () {
-      expect(this.ranking.findRankByScoreBetween(1, 10, 10)).to.eql([]);
+      expect(this.ranking.find({ score: { $gte: 1, $lte: 10 }, $limit: 10 })).to.eql([]);
     });
   });
 
@@ -19,7 +19,7 @@ describe('ranking-find-by-score-paging', function () {
     });
 
     it('should return only one rank position in the list result', function () {
-      var result = this.ranking.findRankByScoreBetween(1, 30, 10);
+      var result = this.ranking.find({ score: { $gte: 1, $lte: 30 }, $limit: 10 });
       expect(result).to.eql([
         { position: 1, score: 5, playerId: 'jack' }
       ]);
@@ -32,7 +32,7 @@ describe('ranking-find-by-score-paging', function () {
     });
 
     it('should return only one rank position in the list result', function () {
-      var result = this.ranking.findRankByScoreBetween(1, 30, 10);
+      var result = this.ranking.find({ score: { $gte: 1, $lte: 30 }, $limit: 10 });
       expect(result).to.eql([
         { position: 1, score: 28, playerId: 'jack' }
       ]);
@@ -48,7 +48,7 @@ describe('ranking-find-by-score-paging', function () {
     });
 
     it('should return only one rank position in the list result', function () {
-      var result = this.ranking.findRankByScoreBetween(1, 10, 10);
+      var result = this.ranking.find({ score: { $gte: 1, $lte: 10 }, $limit: 10 });
       expect(result).to.eql([
         { position: 3, score: 4, playerId: 'player-001' },
         { position: 4, score: 4, playerId: 'player-002' }
@@ -107,7 +107,7 @@ describe('ranking-find-by-score-paging', function () {
     });
 
     it('should be able to filter only the top 10 players', function () {
-      var result = this.ranking.findRankByScoreBetween(1, 30, 10);
+      var result = this.ranking.find({ score: { $gte: 1, $lte: 30 }, $limit: 10 });
       expect(result).to.eql([
         { position: 1, score: 28, playerId: 'player-034' },
         { position: 2, score: 28, playerId: 'player-035' },
