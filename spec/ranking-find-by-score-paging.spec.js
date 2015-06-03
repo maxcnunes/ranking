@@ -39,7 +39,7 @@ describe('ranking-find-by-score-paging', function () {
     });
   });
 
-  describe('given 2 existing players with score 4', function () {
+  describe('given 2 existing players with score 4 and other 2 with score 24', function () {
     beforeEach(function () {
       this.ranking.setScore({ score: 4, playerId: 'player-001' });
       this.ranking.setScore({ score: 4, playerId: 'player-002' });
@@ -47,12 +47,41 @@ describe('ranking-find-by-score-paging', function () {
       this.ranking.setScore({ score: 24, playerId: 'player-004' });
     });
 
-    it('should return only one rank position in the list result', function () {
-      var result = this.ranking.find({ score: { $gte: 1, $lte: 10 }, $limit: 10 });
-      expect(result).to.eql([
-        { position: 3, score: 4, playerId: 'player-001' },
-        { position: 4, score: 4, playerId: 'player-002' }
-      ]);
+    describe('on searching for all scores less than 10', function () {
+      it('should return only those 2 with score 4', function () {
+        var result = this.ranking.find({ score: { $lte: 10 }, $limit: 10 });
+        expect(result).to.eql([
+          { position: 3, score: 4, playerId: 'player-001' },
+          { position: 4, score: 4, playerId: 'player-002' }
+        ]);
+      });
+    });
+
+    describe('on searching for all scores greater than 10', function () {
+      it('should return only those 2 with score 24', function () {
+        var result = this.ranking.find({ score: { $gte: 10 }, $limit: 10 });
+        expect(result).to.eql([
+          { position: 1, score: 24, playerId: 'player-003' },
+          { position: 2, score: 24, playerId: 'player-004' }
+        ]);
+      });
+    });
+
+    describe('on searching for all scores equal to 4', function () {
+      it('should return only those 2 with score 4', function () {
+        var result = this.ranking.find({ score: 4, $limit: 10 });
+        expect(result).to.eql([
+          { position: 3, score: 4, playerId: 'player-001' },
+          { position: 4, score: 4, playerId: 'player-002' }
+        ]);
+      });
+    });
+
+    describe('on searching for one score equal to 4', function () {
+      it('should return only the first one with score 4', function () {
+        var result = this.ranking.findOne({ score: 4 });
+        expect(result).to.eql({ position: 3, score: 4, playerId: 'player-001' });
+      });
     });
   });
 
@@ -120,6 +149,13 @@ describe('ranking-find-by-score-paging', function () {
         { position: 9, score: 25, playerId: 'player-029' },
         { position: 10, score: 23, playerId: 'player-027' }
       ]);
+    });
+
+    describe('on searching for one score equal to 21', function () {
+      it('should return only the rank with score 21', function () {
+        var result = this.ranking.findOne({ score: 21 });
+        expect(result).to.eql({ position: 12, score: 21, playerId: 'player-025' });
+      });
     });
   });
 });

@@ -46,8 +46,8 @@ export default class Ranking {
     else if (query.score) {
       prepareQueryByRange(query, 'score');
 
-      query.score.$gte = query.score.$gte - 1;/*base 0*/
-      query.score.$lte = (query.score.$lte || this.maxScore) - 1;/*base 0*/
+      query.score.$gte = query.score.$gte;/*base 0*/
+      query.score.$lte = (query.score.$lte || this.maxScore - 1/*base 0*/);
 
       findByScore({
         branchFactor: this.branchFactor,

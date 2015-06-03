@@ -4,9 +4,6 @@ const debug = require('./debug')('ranking');
 
 export function findByScore({ branchFactor, node, nodeScoreRange, query, result }) {
   debug('');
-
-  // node.range = [nodeScoreRange.beginAt, nodeScoreRange.endAt]; //debug
-
   debug('query.$limit [%o]', query.$limit);
   debug('nodeScoreRange.beginAt [%o]', nodeScoreRange.beginAt);
   debug('nodeScoreRange.endAt [%o]', nodeScoreRange.endAt);
@@ -45,9 +42,11 @@ export function findByScore({ branchFactor, node, nodeScoreRange, query, result 
           result
         });
       } else {
-        debug('node.children[%o].amount [%o]', i, currentNode.amount);
         for (let playerIndex = 0; playerIndex < currentNode.amount; playerIndex++) {
-          if (result.list.length < query.$limit) {
+          debug('node.children[%o].amount [%o]', i, currentNode.amount);
+          debug('node.children[%o].score [%o]', i, currentNode.score);
+          debug('node.children[%o].playerIds [%o]', i, currentNode.playerIds);
+          if (result.list.length < query.$limit && currentNode.score >= query.score.$gte && currentNode.score <= query.score.$lte) {
             result.position += 1;
             result.list.push({ position: result.position, score: currentNode.score, playerId: currentNode.playerIds[playerIndex] });
           }
@@ -60,9 +59,6 @@ export function findByScore({ branchFactor, node, nodeScoreRange, query, result 
 
 export function findByPosition({ branchFactor, node, nodeScoreRange, query, result }) {
   debug('');
-
-  // node.range = [nodeScoreRange.beginAt, nodeScoreRange.endAt]; //debug
-
   debug('query.$limit [%o]', query.$limit);
   debug('nodeScoreRange.beginAt [%o]', nodeScoreRange.beginAt);
   debug('nodeScoreRange.endAt [%o]', nodeScoreRange.endAt);
@@ -126,9 +122,10 @@ export function setScore({ branchFactor, node, score, playerId, nodeScoreRange }
   debug('');
   debug('score [%o=%o]', playerId, score);
 
+  // node.range = [nodeScoreRange.beginAt, nodeScoreRange.endAt]; //debug
+
   // increases amount on current node before continue going deeper
   node.amount += 1;
-  // node.range = [nodeScoreRange.beginAt, nodeScoreRange.endAt]; //debug
 
   debug('nodeScoreRange.beginAt [%o]', nodeScoreRange.beginAt);
   debug('nodeScoreRange.endAt [%o]', nodeScoreRange.endAt);
