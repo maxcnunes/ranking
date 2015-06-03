@@ -131,4 +131,56 @@ describe('ranking-set', function () {
       });
     });
   });
+
+  describe('given an player with score 9', function () {
+    beforeEach(function () {
+      this.ranking.setScore({ score: 9, playerId: 'jack' });
+    });
+
+    it('should stores the player\'s id in the node for score 9', function () {
+      expect(this.ranking.tree).to.eql({
+        amount: 1,
+        children: [
+          // 0-9
+          {
+            amount: 1,
+            children: [
+              // 0-2
+              { amount: 0 },
+              // 3-5
+              { amount: 0 },
+              // 6-9
+              {
+                amount: 1,
+                children: [
+                  // 6
+                  { amount: 0 },
+                  // 7
+                  { amount: 0 },
+                  // 8-9
+                  {
+                    amount: 1,
+                    children: [
+                      // 8
+                      { amount: 0 },
+                      // 9
+                      {
+                        amount: 1,
+                        score: 9,
+                        playerIds: [ 'jack' ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          // 10-19
+          { amount: 0 },
+          // 20-29
+          { amount: 0 }
+        ]
+      });
+    });
+  });
 });

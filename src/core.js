@@ -189,7 +189,17 @@ function resolveBranchInfo ({ nodeScoreRange, branchFactor }) {
 
 
 function resolveIndexScore ({ score, nodeScoreRangeBeginAt, amountLeafsPerBranch, amountBranches }) {
-  const indexScore = Math.floor((score - nodeScoreRangeBeginAt) / Math.floor(amountLeafsPerBranch) % amountBranches);
+  nodeScoreRangeBeginAt = Math.floor(score - nodeScoreRangeBeginAt);
+  amountLeafsPerBranch = Math.floor(amountLeafsPerBranch);
+
+
+  let indexScore;
+  if ((nodeScoreRangeBeginAt / amountLeafsPerBranch) >= amountBranches) {
+    indexScore = Math.floor(amountBranches - 1);
+  } else {
+    indexScore = Math.floor(nodeScoreRangeBeginAt / amountLeafsPerBranch % amountBranches);
+  }
+
   debug('indexScore [%o]', indexScore);
   return indexScore;
 }
