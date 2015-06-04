@@ -46,8 +46,8 @@ export function findByScore({ branchFactor, node, nodeScoreRange, query, result 
           debug('node.children[%o].amount [%o]', i, currentNode.amount);
           debug('node.children[%o].score [%o]', i, currentNode.score);
           debug('node.children[%o].playerIds [%o]', i, currentNode.playerIds);
+          result.position += 1;
           if (result.list.length < query.$limit && currentNode.score >= query.score.$gte && currentNode.score <= query.score.$lte) {
-            result.position += 1;
             result.list.push({ position: result.position, score: currentNode.score, playerId: currentNode.playerIds[playerIndex] });
           }
         }
