@@ -1,6 +1,7 @@
 # ranking
 
 [![Build Status](https://travis-ci.org/maxcnunes/ranking.svg?branch=master)](https://travis-ci.org/maxcnunes/ranking)
+[![npm version](https://badge.fury.io/js/ranking.svg)](http://badge.fury.io/js/ranking)
 
 ...
 
