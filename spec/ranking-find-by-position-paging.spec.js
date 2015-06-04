@@ -15,26 +15,26 @@ describe('ranking-find-by-position-paging', function () {
 
   describe('given 1 existing player with score 5', function () {
     beforeEach(function () {
-      this.ranking.setScore({ score: 5, playerId: 'jack' });
+      this.ranking.setScore({ score: 5, playerId: 20 });
     });
 
     it('should return only one rank position in the list result', function () {
       var result = this.ranking.find({ position: { $gte: 1, $lte: 30 }, $limit: 10 });
       expect(result).to.eql([
-        { position: 1, score: 5, playerId: 'jack' }
+        { position: 1, score: 5, playerId: 20 }
       ]);
     });
   });
 
   describe('given 1 existing player with score 28', function () {
     beforeEach(function () {
-      this.ranking.setScore({ score: 28, playerId: 'jack' });
+      this.ranking.setScore({ score: 28, playerId: 20 });
     });
 
     it('should return only one rank position in the list result', function () {
       var result = this.ranking.find({ position: { $gte: 1, $lte: 30 }, $limit: 10 });
       expect(result).to.eql([
-        { position: 1, score: 28, playerId: 'jack' }
+        { position: 1, score: 28, playerId: 20 }
       ]);
     });
   });

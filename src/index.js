@@ -1,6 +1,8 @@
 import { findByScore, findByPosition, setScore } from './core';
 
 const debug = require('./debug')('ranking');
+const REGEXP_POSITIVE_NUMBER = /^\d+$/;
+const REGEXP_NUMBER = /^-?\d+$/;
 
 /**
 
@@ -76,6 +78,9 @@ export default class Ranking {
 
   setScore({ score, playerId }) {
     debug('setScore');
+
+    if (!REGEXP_POSITIVE_NUMBER.test(playerId)) { throw new Error('playerId must be a number'); }
+
     return setScore({
       branchFactor: this.branchFactor,
       score,
@@ -94,7 +99,6 @@ export default class Ranking {
  * prepares the query before searching in the ranking
  * it is possible to filter by a specific value or a range ($gte and $lte)
  */
-const REGEXP_NUMBER = /^-?\d+$/;
 function prepareQueryByRange (query, field) {
   if (!query[field]) { return; }
 

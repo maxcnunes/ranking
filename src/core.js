@@ -1,7 +1,6 @@
 const debug = require('./debug')('ranking');
 
 
-
 export function findByScore({ branchFactor, node, nodeScoreRange, query, result }) {
   debug('');
   debug('query.$limit [%o]', query.$limit);
