@@ -1,5 +1,7 @@
 # ranking
 
+[![Build Status](https://travis-ci.org/maxcnunes/ranking.svg?branch=master)](https://travis-ci.org/maxcnunes/ranking)
+
 ...
 
 
