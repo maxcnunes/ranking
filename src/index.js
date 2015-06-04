@@ -30,8 +30,11 @@ export default class Ranking {
     if (!query) { query = {}; }
     query.$limit = query.$limit || 10;
 
+    prepareQueryByRange(query, 'playerId');
+    prepareQueryByRange(query, 'position');
+    prepareQueryByRange(query, 'score');
+
     if (query.position) {
-      prepareQueryByRange(query, 'position');
       findByPosition({
         branchFactor: this.branchFactor,
         node: this.tree,
@@ -44,8 +47,6 @@ export default class Ranking {
       });
     }
     else if (query.score) {
-      prepareQueryByRange(query, 'score');
-
       query.score.$gte = query.score.$gte;/*base 0*/
       query.score.$lte = (query.score.$lte || this.maxScore - 1/*base 0*/);
 
@@ -95,6 +96,8 @@ export default class Ranking {
  */
 const REGEXP_NUMBER = /^-?\d+$/;
 function prepareQueryByRange (query, field) {
+  if (!query[field]) { return; }
+
   const value = REGEXP_NUMBER.test(query[field]) && query[field];
   query[field] = {
     $gte: value || query[field].$gte || 1,

@@ -48,7 +48,10 @@ export function findByScore({ branchFactor, node, nodeScoreRange, query, result 
           debug('node.children[%o].playerIds [%o]', i, currentNode.playerIds);
           result.position += 1;
           if (result.list.length < query.$limit && currentNode.score >= query.score.$gte && currentNode.score <= query.score.$lte) {
-            result.list.push({ position: result.position, score: currentNode.score, playerId: currentNode.playerIds[playerIndex] });
+            const playerId = currentNode.playerIds[playerIndex];
+            if (!query.playerId || (playerId >= query.playerId.$gte && playerId <= query.playerId.$lte)) {
+              result.list.push({ position: result.position, score: currentNode.score, playerId: playerId });
+            }
           }
         }
       }
@@ -111,7 +114,10 @@ export function findByPosition({ branchFactor, node, nodeScoreRange, query, resu
         result.position += 1;
         debug('position player [%o]', result.position);
         if (result.list.length < query.$limit && result.position >= query.position.$gte && result.position <= query.position.$lte) {
-          result.list.push({ position: result.position, score: currentNode.score, playerId: currentNode.playerIds[playerIndex] });
+          const playerId = currentNode.playerIds[playerIndex];
+          if (!query.playerId || (playerId >= query.playerId.$gte && playerId <= query.playerId.$lte)) {
+            result.list.push({ position: result.position, score: currentNode.score, playerId: playerId });
+          }
         }
       }
     }
