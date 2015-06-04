@@ -122,7 +122,8 @@ export function setScore({ branchFactor, node, score, playerId, nodeScoreRange }
   debug('');
   debug('score [%o=%o]', playerId, score);
 
-  // node.range = [nodeScoreRange.beginAt, nodeScoreRange.endAt]; //debug
+  // node.rangeIndex = [nodeScoreRange.beginAt, nodeScoreRange.endAt]; //debug
+  // node.rangeScore = [nodeScoreRange.beginAt + 1, nodeScoreRange.endAt + 1]; //debug
 
   // increases amount on current node before continue going deeper
   node.amount += 1;
