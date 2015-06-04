@@ -7,8 +7,10 @@
   "scripts": {
     "compile": "babel --stage 0 -d lib/ src/",
     "prepublish": "npm run compile",
-    "test": "eslint src/ spec/ && mocha --compilers js:./compiler --timeout 30000 --reporter spec ./spec/**/*.spec.js",
-    "watch-test": "eslint src/ spec/ && mocha --compilers js:./compiler --timeout 30000 --watch --reporter spec ./spec/**/*.spec.js"
+    "test": "eslint src/ spec/ && mocha --compilers js:./compiler --reporter spec ./spec/**/*.spec.js",
+    "watch-test": "eslint src/ spec/ && mocha --compilers js:./compiler --watch --reporter spec ./spec/**/*.spec.js",
+    "coverage": "istanbul cover _mocha -- --compilers js:./compiler --reporter spec ./spec/**/*.spec.js",
+    "coveralls": "npm run coverage && node ./node_modules/coveralls/bin/coveralls.js < coverage/lcov.info"
   },
   "keywords": [
     "ranking",
@@ -23,7 +25,9 @@
     "babel": "^5.4.7",
     "babel-eslint": "^3.1.9",
     "chai": "^2.3.0",
+    "coveralls": "^2.11.2",
     "eslint": "^0.22.1",
+    "istanbul": "^0.3.14",
     "mocha": "^2.2.5",
     "sinon": "^1.14.1"
   },
