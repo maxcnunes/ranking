@@ -150,11 +150,16 @@ export function setScore({ branchFactor, node, score, playerId, nodeScoreRange }
     }
   }
 
+  let totalHigherPositions = 0;
+  for (let i = amountBranches - 1;/*base 0*/ i > indexScore; i--) {
+    totalHigherPositions += node.children[i].amount;
+  }
+
   node = node.children[indexScore];
 
   // in case it is a non-leaf then continues going deeper
   if (nodeScoreRange.beginAt !== nodeScoreRange.endAt) {
-    return setScore({
+    return totalHigherPositions + setScore({
       score,
       playerId,
       nodeScoreRange,
@@ -173,6 +178,7 @@ export function setScore({ branchFactor, node, score, playerId, nodeScoreRange }
     node.amount += 1;
     node.score = score; //debug
     node.playerIds.push(playerId);
+    return totalHigherPositions + node.amount;
   }
 }
 
