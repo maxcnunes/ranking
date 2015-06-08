@@ -49,7 +49,7 @@ describe('ranking-set', function () {
 
   describe('given an player with score 4', function () {
     beforeEach(function () {
-      this.resultPosition = this.ranking.setScore({ score: 4, playerId: 10 });
+      this.resultPosition = this.ranking.addPlayerPoints({ points: 4, playerId: 10 });
     });
 
     it('should return the player\'s position in the ranking', function () {
@@ -90,6 +90,24 @@ describe('ranking-set', function () {
           // 20-29
           { amount: 0 }
         ]
+      });
+    });
+
+    describe('given is adding a new score of 10 points for this user', function () {
+      beforeEach(function () {
+        this.resultPosition = this.ranking.addPlayerPoints({ points: 10, playerId: 10 });
+      });
+
+      it('should return the player\'s position in the ranking', function () {
+        expect(this.resultPosition).to.eql(1);
+      });
+
+      it('should update the player\'s score in the ranking', function () {
+        expect(this.ranking.findOne({ position: this.resultPosition, playerId: 10 }).score).to.eql(14);
+      });
+
+      it('should update the player\'s position instead of insert him again in the ranking', function () {
+        expect(this.ranking.tree.amount).to.eql(1);
       });
     });
 

@@ -123,7 +123,7 @@ export function findByPosition({ branchFactor, node, nodeScoreRange, query, resu
   }
 }
 
-export function setScore({ branchFactor, node, score, playerId, nodeScoreRange }) {
+export function setScore({ branchFactor, node, score, playerId, players, nodeScoreRange }) {
   debug('');
   debug('score [%o=%o]', playerId, score);
 
@@ -162,6 +162,7 @@ export function setScore({ branchFactor, node, score, playerId, nodeScoreRange }
     return totalHigherPositions + setScore({
       score,
       playerId,
+      players,
       nodeScoreRange,
       node,
       branchFactor
@@ -178,7 +179,56 @@ export function setScore({ branchFactor, node, score, playerId, nodeScoreRange }
     node.amount += 1;
     node.score = score; //debug
     node.playerIds.push(playerId);
+    players[playerId] = score;
     return totalHigherPositions + node.amount;
+  }
+}
+
+
+
+export function removePlayerScore({ branchFactor, node, score, playerId, players, nodeScoreRange }) {
+  debug('');
+  debug('score [%o=%o]', playerId, score);
+
+  // node.rangeIndex = [nodeScoreRange.beginAt, nodeScoreRange.endAt]; //debug
+  // node.rangeScore = [nodeScoreRange.beginAt + 1, nodeScoreRange.endAt + 1]; //debug
+
+  // increases amount on current node before continue going deeper
+  node.amount -= 1;
+
+  debug('nodeScoreRange.beginAt [%o]', nodeScoreRange.beginAt);
+  debug('nodeScoreRange.endAt [%o]', nodeScoreRange.endAt);
+
+  const { amountLeafsPerBranch, amountBranches } = resolveBranchInfo({ nodeScoreRange, branchFactor });
+  const indexScore = resolveIndexScore({ score, nodeScoreRangeBeginAt: nodeScoreRange.beginAt, amountLeafsPerBranch, amountBranches });
+
+  nodeScoreRange.beginAt = resolveInitScore({ nodeScoreRangeBeginAt: nodeScoreRange.beginAt, indexScore, amountLeafsPerBranch });
+  nodeScoreRange.endAt = resolveMaxScore({ nodeScoreRangeBeginAt: nodeScoreRange.beginAt, indexScore, amountLeafsPerBranch, amountBranches });
+
+  node = node.children[indexScore];
+
+  // in case it is a non-leaf then continues going deeper
+  if (nodeScoreRange.beginAt !== nodeScoreRange.endAt) {
+    return removePlayerScore({
+      score,
+      playerId,
+      players,
+      nodeScoreRange,
+      node,
+      branchFactor
+    });
+  }
+
+  /*
+    LEAF
+   */
+  if (!node.playerIds) { node.playerIds = []; }
+
+  const playerIndex = node.playerIds.indexOf(playerId);
+  if (~playerIndex) {
+    node.amount -= 1;
+    node.playerIds.splice(playerIndex, 1);
+    delete players[playerId];
   }
 }
 

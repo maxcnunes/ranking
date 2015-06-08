@@ -1,4 +1,4 @@
-import { findByScore, findByPosition, setScore } from './core';
+import { findByScore, findByPosition, setScore, removePlayerScore } from './core';
 
 const debug = require('./debug')('ranking');
 const REGEXP_POSITIVE_NUMBER = /^\d+$/;
@@ -19,6 +19,7 @@ export default class Ranking {
     this.maxScore = maxScore;
     this.branchFactor = branchFactor;
     this.tree = { amount: 0, children: null };
+    this.players = {};
   }
 
   find(query) {
@@ -81,16 +82,41 @@ export default class Ranking {
 
     if (!REGEXP_POSITIVE_NUMBER.test(playerId)) { throw new Error('playerId must be a number'); }
 
+    if (this.players[playerId]) {
+      debug('removing player score');
+      removePlayerScore({
+        branchFactor: this.branchFactor,
+        score: this.players[playerId],
+        playerId,
+        players: this.players,
+        node: this.tree,
+        nodeScoreRange: {
+          beginAt: 0,
+          endAt: this.maxScore - 1/*base 0*/
+        }
+      });
+    }
+
+    debug('setting new player score');
     return setScore({
       branchFactor: this.branchFactor,
       score,
       playerId,
+      players: this.players,
       node: this.tree,
       nodeScoreRange: {
         beginAt: 0,
         endAt: this.maxScore - 1/*base 0*/
       }
     });
+  }
+
+  addPlayerPoints({ points, playerId }) {
+    debug('addPlayerScore');
+
+    const newScore = (this.players[playerId] || 0) + points;
+
+    return this.setScore({ score: newScore, playerId });
   }
 }
 
