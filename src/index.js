@@ -77,6 +77,8 @@ export default class Ranking {
     return this.find(query)[0];
   }
 
+  // TODO NEXT BREAKING CHANGES:
+  // change setScore to return the same result schema of addPlayerPoints { position, score, playerId }
   setScore({ score, playerId }) {
     debug('setScore');
 
@@ -116,7 +118,13 @@ export default class Ranking {
 
     const newScore = (this.players[playerId] || 0) + points;
 
-    return this.setScore({ score: newScore, playerId });
+    const newPosition = this.setScore({ score: newScore, playerId });
+
+    return {
+      position: newPosition,
+      score: newScore,
+      playerId: playerId
+    };
   }
 }
 

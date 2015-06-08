@@ -49,11 +49,11 @@ describe('ranking-set', function () {
 
   describe('given an player with score 4', function () {
     beforeEach(function () {
-      this.resultPosition = this.ranking.addPlayerPoints({ points: 4, playerId: 10 });
+      this.result = this.ranking.addPlayerPoints({ points: 4, playerId: 10 });
     });
 
-    it('should return the player\'s position in the ranking', function () {
-      expect(this.resultPosition).to.eql(1);
+    it('should return the player\'s position and score in the ranking', function () {
+      expect(this.result).to.eql({ position: 1, score: 4, playerId: 10 });
     });
 
     it('should stores the player\'s id in the node for score 4', function () {
@@ -95,15 +95,15 @@ describe('ranking-set', function () {
 
     describe('given is adding a new score of 10 points for this user', function () {
       beforeEach(function () {
-        this.resultPosition = this.ranking.addPlayerPoints({ points: 10, playerId: 10 });
+        this.result = this.ranking.addPlayerPoints({ points: 10, playerId: 10 });
       });
 
-      it('should return the player\'s position in the ranking', function () {
-        expect(this.resultPosition).to.eql(1);
+      it('should return the player\'s position and score in the ranking', function () {
+        expect(this.result).to.eql({ position: 1, score: 14, playerId: 10 });
       });
 
       it('should update the player\'s score in the ranking', function () {
-        expect(this.ranking.findOne({ position: this.resultPosition, playerId: 10 }).score).to.eql(14);
+        expect(this.ranking.findOne({ position: this.result.position, playerId: 10 }).score).to.eql(14);
       });
 
       it('should update the player\'s position instead of insert him again in the ranking', function () {
