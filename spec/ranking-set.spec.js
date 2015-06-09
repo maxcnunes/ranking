@@ -38,8 +38,7 @@ describe('ranking-set', function () {
   describe('given an player with a score bigger than the ranking limit', function () {
     beforeEach(function () {
       try {
-        this.ranking.setScore({ score: 34,
-          playerId: 1 });
+        this.ranking.setScore({ score: 34, playerId: 1 });
       } catch (e) {
         this.errorMessage = e;
       }
