@@ -82,6 +82,7 @@ export default class Ranking {
   setScore({ score, playerId }) {
     debug('setScore');
 
+    if (score > this.maxScore) { throw new Error('score is bigger than the ranking limit'); }
     if (!REGEXP_POSITIVE_NUMBER.test(playerId)) { throw new Error('playerId must be a number'); }
 
     if (this.players[playerId]) {

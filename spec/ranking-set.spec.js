@@ -24,7 +24,29 @@ describe('ranking-set', function () {
     });
 
     it('should throw an expection', function () {
-      expect(this.errorMessage).to.eql(new Error('playerId must be a number'));
+      expect(this.errorMessage.message).to.eql('playerId must be a number');
+    });
+
+    it('should not inlcude him in the ranking', function () {
+      expect(this.ranking.tree).to.eql({
+        amount: 0,
+        children: null
+      });
+    });
+  });
+
+  describe('given an player with a score bigger than the ranking limit', function () {
+    beforeEach(function () {
+      try {
+        this.ranking.setScore({ score: 34,
+          playerId: 1 });
+      } catch (e) {
+        this.errorMessage = e;
+      }
+    });
+
+    it('should throw an expection', function () {
+      expect(this.errorMessage.message).to.eql('score is bigger than the ranking limit');
     });
 
     it('should not inlcude him in the ranking', function () {
