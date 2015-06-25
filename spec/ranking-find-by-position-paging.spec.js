@@ -110,6 +110,10 @@ describe('ranking-find-by-position-paging', function () {
       expect(result).to.eql({ position: 9, score: 25, playerId: 29 });
     });
 
+    it('should be able to discover the rank by player id', function () {
+      var result = this.ranking.findOne({ playerId: 29 });
+      expect(result).to.eql({ position: 9, score: 25, playerId: 29 });
+    });
 
     describe('given a player\'s score and id', function () {
       let playerRankingPosition;

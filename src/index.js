@@ -33,6 +33,13 @@ export default class Ranking {
     if (!query) { query = {}; }
     query.$limit = query.$limit || 10;
 
+    // filters by player id when not passing his score or position
+    if (query.playerId && !query.score && !query.position && !query.playerId.$gte && !query.playerId.$lte) {
+      const playerScore = this.players[query.playerId.toString()];
+      if (!playerScore) { return []; }
+      query.score = this.players[query.playerId];
+    }
+
     prepareQueryByRange(query, 'playerId');
     prepareQueryByRange(query, 'position');
     prepareQueryByRange(query, 'score');
