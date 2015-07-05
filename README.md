@@ -4,8 +4,15 @@
 [![Coverage Status](https://coveralls.io/repos/maxcnunes/ranking/badge.svg)](https://coveralls.io/r/maxcnunes/ranking)
 [![npm version](https://badge.fury.io/js/ranking.svg)](http://badge.fury.io/js/ranking)
 
-...
 
+TODO:
+- Improve docs
+- Implement auto balance
+
+
+Based on: [Fast and reliable ranking in datastore](https://cloud.google.com/datastore/docs/articles/fast-and-reliable-ranking-in-datastore)
+
+![](https://cloud.google.com/datastore/docs/articles/images/fast-and-reliable-ranking-in-datastore/image05.png)
 
 ## Installation
 
