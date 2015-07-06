@@ -1,4 +1,5 @@
-import { findByScore, findByPosition, setScore, removePlayerScore } from './core';
+// import { findByScore, findByPosition, setScore, removePlayerScore } from './core';
+import { findByScore, findByPosition, setScore } from './core';
 
 const debug = require('./debug')('ranking');
 const REGEXP_POSITIVE_NUMBER = /^\d+$/;
@@ -15,10 +16,10 @@ const REGEXP_NUMBER = /^-?\d+$/;
     }
  */
 export default class Ranking {
-  constructor ({ maxScore, branchFactor }) {
-    this.maxScore = maxScore;
+  constructor ({ branchFactor }) {
+    // this.maxScore = maxScore;
     this.branchFactor = branchFactor;
-    this.tree = { amount: 0, children: null };
+    this.tree = { amount: 0, scoreRange: {}, leafs: [] };
     this.players = {};
   }
 
@@ -89,23 +90,23 @@ export default class Ranking {
   setScore({ score, playerId }) {
     debug('setScore');
 
-    if (score > this.maxScore) { throw new Error('score is bigger than the ranking limit'); }
+    // if (score > this.maxScore) { throw new Error('score is bigger than the ranking limit'); }
     if (!REGEXP_POSITIVE_NUMBER.test(playerId)) { throw new Error('playerId must be a number'); }
 
-    if (this.players[playerId]) {
-      debug('removing player score');
-      removePlayerScore({
-        branchFactor: this.branchFactor,
-        score: this.players[playerId],
-        playerId,
-        players: this.players,
-        node: this.tree,
-        nodeScoreRange: {
-          beginAt: 0,
-          endAt: this.maxScore - 1/*base 0*/
-        }
-      });
-    }
+    // if (this.players[playerId]) {
+    //   debug('removing player score');
+    //   removePlayerScore({
+    //     branchFactor: this.branchFactor,
+    //     score: this.players[playerId],
+    //     playerId,
+    //     players: this.players,
+    //     node: this.tree,
+    //     nodeScoreRange: {
+    //       beginAt: 0,
+    //       endAt: this.maxScore - 1/*base 0*/
+    //     }
+    //   });
+    // }
 
     debug('setting new player score');
     return setScore({
