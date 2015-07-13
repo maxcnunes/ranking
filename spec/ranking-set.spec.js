@@ -68,6 +68,39 @@ describe('ranking-set', function () {
     });
   });
 
+  describe('given an player with score 0', function () {
+    beforeEach(function () {
+      this.result = this.ranking.addPlayerPoints({ points: 0, playerId: 10 });
+    });
+
+    it('should not include the player in the ranking', function () {
+      expect(this.ranking.tree.amount).to.eql(0);
+    });
+
+    describe('given this player receives 10 points', function () {
+      beforeEach(function () {
+        this.result = this.ranking.addPlayerPoints({ points: 10, playerId: 10 });
+      });
+
+      it('should include the player in the ranking', function () {
+        expect(this.ranking.tree.amount).to.eql(1);
+      });
+
+      describe('given this player receives 0 points again', function () {
+        beforeEach(function () {
+          this.result = this.ranking.addPlayerPoints({ points: 0, playerId: 10 });
+        });
+
+        it('should not duplicate the player in the ranking', function () {
+          console.log(require('util').inspect(this.ranking, { depth: null }));
+          expect(this.ranking.tree.amount).to.eql(1);
+        });
+      });
+    });
+
+  });
+
+
   describe('given an player with score 4', function () {
     beforeEach(function () {
       this.result = this.ranking.addPlayerPoints({ points: 4, playerId: 10 });
